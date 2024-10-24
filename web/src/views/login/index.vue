@@ -53,6 +53,7 @@
               :trigger-on-focus="false"
               clearable
               autofocus
+              @keyup.enter="handleLogin"
             />
           </el-form-item>
           <el-form-item prop="jwtExpires" label="有效期">
