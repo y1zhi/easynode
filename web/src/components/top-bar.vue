@@ -20,7 +20,7 @@
         link
         @click="visible = true"
       >
-        关于 <span class="new_version">{{ isNew ? `(新版本可用)` : '' }}</span>
+        版本更新 <span class="new_version">{{ isNew ? `(新版本可用)` : '' }}</span>
       </el-button>
       <el-dropdown trigger="click">
         <span class="username_wrap">
@@ -122,15 +122,16 @@
 
     <el-dialog
       v-model="visible"
-      title="关于"
+      title="版本更新"
       top="10vh"
       width="30%"
       :append-to-body="false"
+      :close-on-click-modal="false"
     >
       <div class="about_content">
-        <h1>EasyNode</h1>
+        <!-- <h1>EasyNode</h1> -->
         <p>当前版本: {{ currentVersion }} <span v-show="!isNew">(最新)</span> </p>
-        <p v-if="checkVersionErr" class="conspicuous">Error：版本更新检测失败(版本检测API需要外网环境)</p>
+        <p v-if="checkVersionErr" class="conspicuous">Error：版本更新检测失败(版本检测API需要外网环境),请手动访问GitHub查看</p>
         <p v-if="isNew" class="conspicuous">
           新版本可用: {{ latestVersion }} -> <a
             class="link"
@@ -139,14 +140,14 @@
           >https://github.com/chaos-zhu/easynode/releases</a>
         </p>
         <p>
-          更新日志：<a
+          功能更新日志：<a
             class="link"
             href="https://github.com/chaos-zhu/easynode/blob/main/CHANGELOG.md"
             target="_blank"
           >https://github.com/chaos-zhu/easynode/blob/main/CHANGELOG.md</a>
         </p>
         <p>
-          tg更新通知：<a class="link" href="https://t.me/easynode_notify" target="_blank">https://t.me/easynode_notify</a>
+          TG更新通知频道：<a class="link" href="https://t.me/easynode_notify" target="_blank">https://t.me/easynode_notify</a>
         </p>
         <p style="line-height: 2;letter-spacing: 1px;">
           <strong style="color: #F56C6C;font-weight: 600;">PLUS说明:</strong><br>
@@ -156,11 +157,12 @@
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为了项目的可持续发展，从<strong>3.0.0</strong>版本开始推出了<strong>PLUS</strong>版本，具体特性鼠标悬浮右上角PLUS图标查看，后续特性功能开发也会优先在<strong>PLUS</strong>版本中实现，但即使不升级到<strong>PLUS</strong>，也不会影响到<strong>EasyNode</strong>的基础功能使用【注意: 暂不支持纯内网用户激活PLUS功能】。
           <br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="text-decoration: underline;">
-            为了感谢前期赞赏过的用户, 在<strong>PLUS</strong>功能正式发布前，所有进行过赞赏的用户，无论金额大小，均可联系作者TG: <a class="link" href="https://t.me/chaoszhu" target="_blank">@chaoszhu</a> 凭打赏记录获取永久<strong>PLUS</strong>授权码。
+            为了感谢前期赞赏过的用户, 在<strong>PLUS</strong>功能正式发布前，所有进行过赞赏的用户，无论金额大小，均可联系作者TG: <a class="link" href="https://t.me/chaoszhu" target="_blank">@chaoszhu</a> 凭打赏记录免费获取永久<strong>PLUS</strong>授权码。
           </span>
         </p>
-        <div v-if="!isPlusActive" class="about_footer">
-          <el-button type="primary" @click="handlePlusSupport">去支持</el-button>
+        <div class="about_footer">
+          <el-button type="info" @click="visible = false">关闭</el-button>
+          <el-button v-if="!isPlusActive" type="primary" @click="handlePlusSupport">去支持</el-button>
         </div>
       </div>
     </el-dialog>
@@ -181,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref, getCurrentInstance, computed } from 'vue'
+import { ref, getCurrentInstance, computed, onMounted, onBeforeUnmount } from 'vue'
 import { User, Sunny, Moon, Fold, CircleCheckFilled, Star, StarFilled } from '@element-plus/icons-vue'
 import packageJson from '../../package.json'
 import MenuList from './menuList.vue'
@@ -268,6 +270,24 @@ async function checkLatestVersion() {
 
 checkLatestVersion()
 
+let timer = null
+const checkFirstVisit = () => {
+  timer = setTimeout(() => {
+    const visitedVersion = localStorage.getItem('visitedVersion')
+    if (!visitedVersion || visitedVersion !== currentVersion.value) {
+      visible.value = true
+      localStorage.setItem('visitedVersion', currentVersion.value)
+    }
+  }, 1500)
+}
+
+onMounted(() => {
+  checkFirstVisit()
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(timer)
+})
 </script>
 
 <style lang="scss" scoped>
